@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "cicd-helper"
+version = "0.1.0"
+description = ""
+authors = ["Aleksandr Edakin <alexeagro98@gmail.com>"]
+readme = "README.md"
+packages = [{include = "cicd_helper"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+python-decouple = "^3.8"
+python-gitlab = "^4.6.0"
+jira = "^3.8.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
