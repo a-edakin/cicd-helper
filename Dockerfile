@@ -10,3 +10,5 @@ COPY ./poetry.lock poetry.lock
 RUN poetry config virtualenvs.create false && poetry install --only main --no-root --no-cache
 
 ADD . .
+
+CMD ./main.py

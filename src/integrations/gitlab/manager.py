@@ -29,9 +29,12 @@ class GitlabManager:
 
     def create_ptp_mr(self, description: str) -> ProjectMergeRequest:
         logger.info("Creating new PTP merge request")
+        # TODO: Temporary fix for issue when on CICD only remote branches are present
+        source_branch = settings.SOURCE_BRANCH.replace("remotes/origin/", "")
+        target_branch = settings.TARGET_BRANCH.replace("remotes/origin/", "")
         mr = cast(ProjectMergeRequest, self.project.mergerequests.create({
-            'source_branch': settings.SOURCE_BRANCH,
-            'target_branch': settings.TARGET_BRANCH,
+            'source_branch': source_branch,
+            'target_branch': target_branch,
             'title': settings.PTP_MR_NAME,
             "description": description,
             'labels': settings.GITLAB_PTP_LABELS,
@@ -40,10 +43,13 @@ class GitlabManager:
         return mr
 
     def get_ptp_mr(self) -> ProjectMergeRequest | None:
+        # TODO: Temporary fix for issue when on CICD only remote branches are present
+        source_branch = settings.SOURCE_BRANCH.replace("remotes/origin/", "")
+        target_branch = settings.TARGET_BRANCH.replace("remotes/origin/", "")
         mrs = self.project.mergerequests.list(
             state="opened",
-            source_branch=settings.SOURCE_BRANCH,
-            target_branch=settings.TARGET_BRANCH,
+            source_branch=source_branch,
+            target_branch=target_branch,
         )
         for mr in mrs:
             if mr.title != settings.PTP_MR_NAME:
@@ -53,8 +59,8 @@ class GitlabManager:
 
         logger.info(
             "PTP merge request with source_branch=%s and target_branch=%s and title=%s, not found",
-            settings.SOURCE_BRANCH,
-            settings.TARGET_BRANCH,
+            source_branch,
+            target_branch,
             settings.PTP_MR_NAME,
         )
         return None
