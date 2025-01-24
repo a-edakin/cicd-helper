@@ -11,6 +11,7 @@ python = "^3.10"
 python-decouple = "^3.8"
 python-gitlab = "^4.6.0"
 jira = "^3.8.0"
+gitpython = "^3.1.44"
 
 
 [build-system]

@@ -40,7 +40,7 @@ DOT_GIT_DIR = config("DOT_GIT_DIR", default=".")
 JIRA_PROJECT_URL = config("JIRA_PROJECT_URL", default="")
 JIRA_AUTH_LOGIN = config("JIRA_AUTH_LOGIN", default="")
 JIRA_AUTH_TOKEN = config("JIRA_AUTH_TOKEN", default="")
-JIRA_DONE_STATUS_NAMES = config('JIRA_DONE_STATUS_NAMES', default=["Done"], cast=lambda v: [s.strip() for s in v.split(',')])
+JIRA_DONE_STATUS_NAMES = config('JIRA_DONE_STATUS_NAMES', default="Done", cast=lambda v: [s.strip() for s in v.split(',')])
 
 
 # GITLAB CONFIG
@@ -48,7 +48,7 @@ JIRA_DONE_STATUS_NAMES = config('JIRA_DONE_STATUS_NAMES', default=["Done"], cast
 GITLAB_URL = config('GITLAB_URL', default='')
 GITLAB_PROJECT_ID = config('GITLAB_PROJECT_ID', default='')
 GITLAB_PRIVATE_TOKEN = config('GITLAB_PRIVATE_TOKEN', default='')
-GITLAB_PTP_LABELS = config('GITLAB_PTP_LABELS', default=[], cast=lambda v: [s.strip() for s in v.split(',')])
+GITLAB_PTP_LABELS = config('GITLAB_PTP_LABELS', default="", cast=lambda v: [s.strip() for s in v.split(',')])
 
 # MATTERMOST CONFIG
 # ----------------------------------------------------------------------------------------------------------------------

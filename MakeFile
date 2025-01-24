@@ -1,0 +1,3 @@
+build:
+	docker build -t ci_cd_helper .
+	docker tag ci_cd_helper "ci_cd_helper:$$(git rev-parse --short HEAD)"

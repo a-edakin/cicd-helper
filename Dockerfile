@@ -1,6 +1,7 @@
 FROM python:3.12-slim-bullseye
 
 RUN pip install poetry==1.8.2
+RUN apt-get update && apt-get -y install git
 
 WORKDIR /app
 
