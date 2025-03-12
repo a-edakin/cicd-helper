@@ -35,3 +35,20 @@ def get_todos_from_git_commits(commits: list[Commit]) -> list[ToDo]:
             todos.append(ToDo(commit=commit, text=line))
 
     return todos
+
+
+def get_semver_bumps_from_git_commits(commits: list[Commit]) -> tuple[int, int, int]:
+    major_bumps = 0
+    minor_bumps = 0
+    patch_bumps = 0
+    for commit in commits:
+        if "MAJOR_BUMP" in commit.message:
+            major_bumps += 1
+        elif "MINOR_BUMP" in commit.message:
+            minor_bumps += 1
+        else:
+            patch_bumps += 1
+
+
+
+    return major_bumps, minor_bumps, patch_bumps

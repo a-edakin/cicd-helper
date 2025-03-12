@@ -34,6 +34,7 @@ SOURCE_BRANCH = config("SOURCE_BRANCH", default="main")
 TARGET_BRANCH = config("TARGET_BRANCH", default="production")
 PTP_MR_NAME = config("PTP_MR_NAME", default="Push To Production")
 DOT_GIT_DIR = config("DOT_GIT_DIR", default=".")
+TRACK_SEMVER = config("TRACK_SEMVER", default=False)
 
 # JIRA CONFIG
 # ----------------------------------------------------------------------------------------------------------------------

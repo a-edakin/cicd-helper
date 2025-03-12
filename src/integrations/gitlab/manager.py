@@ -4,6 +4,7 @@ from typing import cast
 
 import gitlab
 from gitlab.v4.objects import Project, ProjectMergeRequest
+from semver import Version
 
 from src import settings
 from src.integrations.structs import BaseTask, ToDo
@@ -19,6 +20,14 @@ def generate_gitlab_description(tasks: list[BaseTask]):
     return description
 
 
+def generate_gitlab_title(previous_version: Version | None = None, next_version: Version | None = None):
+    if next_version is not None:
+        previous_version = previous_version or Version(major=0)
+        return f"{settings.PTP_MR_NAME} [{previous_version}] -> [{next_version}]"
+
+    return settings.PTP_MR_NAME
+
+
 class GitlabManager:
     def __init__(self):
         self.api = gitlab.Gitlab(url=settings.GITLAB_URL, private_token=settings.GITLAB_PRIVATE_TOKEN)
@@ -27,7 +36,41 @@ class GitlabManager:
     def project(self) -> Project:
         return self.api.projects.get(settings.GITLAB_PROJECT_ID)
 
-    def create_ptp_mr(self, description: str) -> ProjectMergeRequest:
+    def get_previous_semver(self) -> Version | None:
+        # TODO: Temporary fix for issue when on CICD only remote branches are present
+        source_branch = settings.SOURCE_BRANCH.replace("remotes/origin/", "")
+        target_branch = settings.TARGET_BRANCH.replace("remotes/origin/", "")
+        mrs = self.project.mergerequests.list(
+            state="merged",
+            source_branch=source_branch,
+            target_branch=target_branch,
+            get_all=False,
+        )
+
+        previous_mr = None
+        for mr in mrs:
+            if mr.title.startswith(settings.PTP_MR_NAME):
+                previous_mr = mr
+                logger.info("Previous PTP with id=%s found.", mr.id)
+                break
+
+        if previous_mr is None:
+            return None
+
+        versions = mr.title.replace(f"{settings.PTP_MR_NAME} ", "").split(" -> ")
+        if len(versions) != 2:
+            return None
+
+        previous_version_raw = versions[0].replace("[", "").replace("]", "")
+
+        try:
+            return Version.parse(previous_version_raw)
+        except ValueError as err:
+            logger.error("Couldn't parse previous version: %s", previous_version_raw, exc_info=err)
+            return None
+
+
+    def create_ptp_mr(self, title: str, description: str) -> ProjectMergeRequest:
         logger.info("Creating new PTP merge request")
         # TODO: Temporary fix for issue when on CICD only remote branches are present
         source_branch = settings.SOURCE_BRANCH.replace("remotes/origin/", "")
@@ -35,7 +78,7 @@ class GitlabManager:
         mr = cast(ProjectMergeRequest, self.project.mergerequests.create({
             'source_branch': source_branch,
             'target_branch': target_branch,
-            'title': settings.PTP_MR_NAME,
+            'title': title,
             "description": description,
             'labels': settings.GITLAB_PTP_LABELS,
         }))
@@ -50,10 +93,11 @@ class GitlabManager:
             state="opened",
             source_branch=source_branch,
             target_branch=target_branch,
+            get_all=False,
         )
         for mr in mrs:
-            if mr.title != settings.PTP_MR_NAME:
-                pass
+            if not mr.title.startswith(settings.PTP_MR_NAME):
+                continue
             logger.info("PTP merge request with id=%s found.", mr.id)
             return cast(ProjectMergeRequest, mr)
 
@@ -65,16 +109,17 @@ class GitlabManager:
         )
         return None
 
-    def create_or_update_ptp_mr(self, description: str) -> ProjectMergeRequest:
+    def create_or_update_ptp_mr(self, title: str, description: str) -> ProjectMergeRequest:
         logger.info("Creating/updating PTP merge request.")
         mr = self.get_ptp_mr()
         if mr is not None:
             logger.info("Updating PTP merge request with id=%s", mr.id)
+            mr.title = title
             mr.description = description
             mr.save()
             return mr
 
-        return self.create_ptp_mr(description)
+        return self.create_ptp_mr(title, description)
 
     def create_todos(self, mr: ProjectMergeRequest, todos: list[ToDo]) -> None:
         discussions = mr.discussions.list(get_all=True)
