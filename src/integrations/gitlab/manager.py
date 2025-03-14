@@ -57,17 +57,21 @@ class GitlabManager:
         if previous_mr is None:
             return None
 
-        versions = mr.title.replace(f"{settings.PTP_MR_NAME} ", "").split(" -> ")
+        versions = previous_mr.title.replace(f"{settings.PTP_MR_NAME} ", "").split(" -> ")
         if len(versions) != 2:
             return None
 
-        previous_version_raw = versions[0].replace("[", "").replace("]", "")
+        previous_version_raw = versions[1].replace("[", "").replace("]", "")
 
         try:
-            return Version.parse(previous_version_raw)
+            previous_version = Version.parse(previous_version_raw)
         except ValueError as err:
             logger.error("Couldn't parse previous version: %s", previous_version_raw, exc_info=err)
             return None
+
+        logger.info("Previous version %s", previous_version)
+
+        return previous_version
 
 
     def create_ptp_mr(self, title: str, description: str) -> ProjectMergeRequest:
